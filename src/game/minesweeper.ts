@@ -41,7 +41,7 @@ export function createGame(rows: number, cols: number, mines: number): Board {
 /**
  * Create a new board with the first click guaranteed to be safe and expanded
  */
-export function createGameWithFirstClickSafe(rows: number, cols: number, mines: number, firstR: number, firstC: number): Board {
+export function createGameWithFirstClickSafe(rows: number, cols: number, mines: number, firstR: number, firstC: number, ensureNumbered: boolean = false): Board {
   const size = rows * cols
   const firstId = firstR * cols + firstC
   
@@ -65,6 +65,26 @@ export function createGameWithFirstClickSafe(rows: number, cols: number, mines: 
   // Calculate adjacent mine counts
   for (const cell of cells) {
     cell.adjacent = countAdjacent(cells, rows, cols, cell.r, cell.c)
+  }
+  
+  if (ensureNumbered) {
+    const firstCell = cells[firstId]
+    if (firstCell.adjacent === 0) {
+      const neighbors: number[] = []
+      forEachNeighbor(cells, rows, cols, firstR, firstC, n => { neighbors.push(n.id) })
+      const candidate = neighbors.find(id => !mineSet.has(id))
+      if (candidate !== undefined) {
+        const removeId = Array.from(mineSet).find(id => id !== candidate)!
+        mineSet.delete(removeId)
+        mineSet.add(candidate)
+        for (const cell of cells) {
+          cell.mine = mineSet.has(cell.id)
+        }
+        for (const cell of cells) {
+          cell.adjacent = countAdjacent(cells, rows, cols, cell.r, cell.c)
+        }
+      }
+    }
   }
   
   return { rows, cols, mines, cells, state: 'playing', revealedCount: 0 }
@@ -111,7 +131,9 @@ export function reveal(board: Board, r: number, c: number, isFirstClick: boolean
  */
 function revealFirstClick(board: Board, r: number, c: number): Board {
   // Create a new board with the first click position guaranteed to be safe
-  const safeBoard = createGameWithFirstClickSafe(board.rows, board.cols, board.mines, r, c)
+  const original = board.cells[r * board.cols + c]
+  const ensureNumbered = original.adjacent > 0
+  const safeBoard = createGameWithFirstClickSafe(board.rows, board.cols, board.mines, r, c, ensureNumbered)
   
   // Now reveal the clicked cell and its neighbors using the standard reveal logic
   const next: Board = { ...safeBoard, cells: safeBoard.cells.slice() }

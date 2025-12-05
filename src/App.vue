@@ -1,37 +1,52 @@
 <template>
   <div class="container">
     <div class="toolbar">
-      <label>难度</label>
-      <select class="select" v-model="difficultyKey" @change="reset()">
-        <option value="easy">初级 9x9/10</option>
-        <option value="medium">中级 16x16/40</option>
-        <option value="hard">高级 16x30/99</option>
-        <option value="custom">自定义</option>
+      <label>游戏</label>
+      <select class="select" v-model="game">
+        <option value="minesweeper">扫雷</option>
+        <option value="pvz">植物大战僵尸</option>
       </select>
-      <template v-if="difficultyKey==='custom'">
-        <input class="input" type="number" min="5" max="50" v-model.number="rows" />
-        <input class="input" type="number" min="5" max="50" v-model.number="cols" />
-        <input class="input" type="number" min="1" :max="rows*cols-1" v-model.number="mines" />
-      </template>
-      <button class="btn" @click="reset()">重新开始</button>
     </div>
-    <div class="status">
-      <div>剩余雷: {{ remainingMines }}</div>
-      <div>状态: {{ statusText }}</div>
-      <div>用时: {{ seconds }}s</div>
-    </div>
-    <Board
-      :board="board"
-      @reveal="onReveal"
-      @flag="onFlag"
-      @revealAdjacent="onRevealAdjacent"
-    />
+
+    <template v-if="game==='minesweeper'">
+      <div class="toolbar">
+        <label>难度</label>
+        <select class="select" v-model="difficultyKey" @change="reset()">
+          <option value="easy">初级 9x9/10</option>
+          <option value="medium">中级 16x16/40</option>
+          <option value="hard">高级 16x30/99</option>
+          <option value="custom">自定义</option>
+        </select>
+        <template v-if="difficultyKey==='custom'">
+          <input class="input" type="number" min="5" max="50" v-model.number="rows" />
+          <input class="input" type="number" min="5" max="50" v-model.number="cols" />
+          <input class="input" type="number" min="1" :max="rows*cols-1" v-model.number="mines" />
+        </template>
+        <button class="btn" @click="reset()">重新开始</button>
+      </div>
+      <div class="status">
+        <div>剩余雷: {{ remainingMines }}</div>
+        <div>状态: {{ statusText }}</div>
+        <div>用时: {{ seconds }}s</div>
+      </div>
+      <Board
+        :board="board"
+        @reveal="onReveal"
+        @flag="onFlag"
+        @revealAdjacent="onRevealAdjacent"
+      />
+    </template>
+
+    <template v-else>
+      <Pvz />
+    </template>
   </div>
   </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import Board from './components/Board.vue'
+import Pvz from './components/Pvz.vue'
 import { createGame, reveal, toggleFlag, revealAdjacent } from './game/minesweeper'
 
 const presets = {
@@ -40,6 +55,7 @@ const presets = {
   hard: { rows: 16, cols: 30, mines: 99 }
 }
 
+const game = ref<'minesweeper'|'pvz'>('minesweeper')
 const difficultyKey = ref<'easy'|'medium'|'hard'|'custom'>('easy')
 const rows = ref(presets.easy.rows)
 const cols = ref(presets.easy.cols)
