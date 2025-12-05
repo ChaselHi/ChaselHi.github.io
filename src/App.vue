@@ -1,6 +1,5 @@
 <template>
   <div class="container">
-    <h1>扫雷</h1>
     <div class="toolbar">
       <label>难度</label>
       <select class="select" v-model="difficultyKey" @change="reset()">
@@ -25,6 +24,7 @@
       :board="board"
       @reveal="onReveal"
       @flag="onFlag"
+      @revealAdjacent="onRevealAdjacent"
     />
   </div>
   </template>
@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import Board from './components/Board.vue'
-import { createGame, reveal, toggleFlag } from './game/minesweeper'
+import { createGame, reveal, toggleFlag, revealAdjacent } from './game/minesweeper'
 
 const presets = {
   easy: { rows: 9, cols: 9, mines: 10 },
@@ -83,10 +83,17 @@ const statusText = computed(() => {
 function onReveal(r: number, c: number) {
   if (board.value.state !== 'playing') return
   const wasFirst = board.value.revealedCount === 0
-  board.value = reveal(board.value, r, c)
+  board.value = reveal(board.value, r, c, wasFirst)
   if (wasFirst) startTimer()
   if (board.value.state !== 'playing') stopTimer()
 }
+
+function onRevealAdjacent(r: number, c: number) {
+  if (board.value.state !== 'playing') return
+  board.value = revealAdjacent(board.value, r, c)
+  if (board.value.state !== 'playing') stopTimer()
+}
+
 function onFlag(r: number, c: number) {
   if (board.value.state !== 'playing') return
   board.value = toggleFlag(board.value, r, c)

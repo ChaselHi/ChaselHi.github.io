@@ -48,6 +48,7 @@ body {
   background: #0b1220;
   padding: 8px;
   border-radius: 12px;
+  width: fit-content;
 }
 .cell {
   width: 32px;

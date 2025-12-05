@@ -6,6 +6,7 @@
       :cell="cell"
       @reveal="$emit('reveal', cell.r, cell.c)"
       @flag="$emit('flag', cell.r, cell.c)"
+      @revealAdjacent="$emit('revealAdjacent', cell.r, cell.c)"
     />
   </div>
 </template>
@@ -16,5 +17,10 @@ import Cell from './Cell.vue'
 import type { Board } from '../game/minesweeper'
 
 const props = defineProps<{ board: Board }>()
+defineEmits<{
+  (e: 'reveal', r: number, c: number): void,
+  (e: 'flag', r: number, c: number): void,
+  (e: 'revealAdjacent', r: number, c: number): void
+}>()
 const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.board.cols}, 32px)` }))
 </script>
