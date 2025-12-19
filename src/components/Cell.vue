@@ -1,11 +1,12 @@
 <template>
   <div
     class="cell"
-    :class="{ revealed: cell.revealed }"
+    :class="{ revealed: cell.revealed, 'cheat-highlight': cell.cheatRevealed }"
     @click="onLeft"
     @contextmenu.prevent="onRight"
   >
-    <span v-if="cell.flag">🚩</span>
+    <span v-if="cell.cheatRevealed">💣</span>
+    <span v-else-if="cell.flag">🚩</span>
     <span v-else-if="cell.revealed && cell.mine">💣</span>
     <span v-else-if="cell.revealed && cell.adjacent>0">{{ cell.adjacent }}</span>
   </div>

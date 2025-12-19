@@ -23,6 +23,14 @@
           <input class="input" type="number" min="1" :max="rows*cols-1" v-model.number="mines" />
         </template>
         <button class="btn" @click="reset()">重新开始</button>
+        <button 
+          class="btn" 
+          :class="{ 'cheat-active': board.cheatMode, 'cheat-disabled': board.cheatUsed }"
+          :disabled="board.cheatUsed || board.state !== 'playing'"
+          @click="onCheatClick"
+        >
+          {{ board.cheatUsed ? '已使用作弊' : board.cheatMode ? '点击数字使用' : '作弊' }}
+        </button>
       </div>
       <div class="status">
         <div>剩余雷: {{ remainingMines }}</div>
@@ -34,6 +42,7 @@
         @reveal="onReveal"
         @flag="onFlag"
         @revealAdjacent="onRevealAdjacent"
+        @cheat="onCheat"
       />
     </template>
 
@@ -47,7 +56,7 @@
 import { ref, computed, watch } from 'vue'
 import Board from './components/Board.vue'
 import Pvz from './components/Pvz.vue'
-import { createGame, reveal, toggleFlag, revealAdjacent } from './game/minesweeper'
+import { createGame, reveal, toggleFlag, revealAdjacent, activateCheatMode, useCheat } from './game/minesweeper'
 
 const presets = {
   easy: { rows: 9, cols: 9, mines: 10 },
@@ -113,6 +122,16 @@ function onRevealAdjacent(r: number, c: number) {
 function onFlag(r: number, c: number) {
   if (board.value.state !== 'playing') return
   board.value = toggleFlag(board.value, r, c)
+}
+
+function onCheatClick() {
+  if (board.value.cheatUsed || board.value.state !== 'playing') return
+  board.value = activateCheatMode(board.value)
+}
+
+function onCheat(r: number, c: number) {
+  if (board.value.state !== 'playing') return
+  board.value = useCheat(board.value, r, c)
 }
 
 watch(() => [rows.value, cols.value, mines.value], () => {

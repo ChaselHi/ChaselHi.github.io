@@ -35,6 +35,20 @@ body {
   cursor: pointer;
 }
 .btn.danger { background: var(--danger); color: #3f0b0b; }
+.btn.cheat-active {
+  background: #f59e0b;
+  color: #451a03;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.btn.cheat-disabled {
+  background: #6b7280;
+  color: #1f2937;
+  cursor: not-allowed;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 .select, .input {
   background: var(--panel);
   color: var(--text);
@@ -61,6 +75,15 @@ body {
 }
 .cell:hover { background: var(--cell-hover); }
 .cell.revealed { background: #111827; }
+.cell.cheat-highlight {
+  background: #fef3c7;
+  color: #78350f;
+  animation: cheatReveal 0.5s ease-out;
+}
+@keyframes cheatReveal {
+  0% { transform: scale(1.2); background: #fbbf24; }
+  100% { transform: scale(1); background: #fef3c7; }
+}
 .status {
   display: flex;
   gap: 16px;

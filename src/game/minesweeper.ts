@@ -8,6 +8,7 @@ export interface Cell {
   revealed: boolean
   flag: boolean
   adjacent: number
+  cheatRevealed?: boolean  // For cheat mode: reveal mine position without triggering game over
 }
 
 export interface Board {
@@ -17,6 +18,8 @@ export interface Board {
   cells: Cell[]
   state: GameState
   revealedCount: number
+  cheatMode: boolean       // Whether cheat mode is active
+  cheatUsed: boolean       // Whether cheat has been used
 }
 
 export function createGame(rows: number, cols: number, mines: number): Board {
@@ -35,7 +38,7 @@ export function createGame(rows: number, cols: number, mines: number): Board {
   for (const cell of cells) {
     cell.adjacent = countAdjacent(cells, rows, cols, cell.r, cell.c)
   }
-  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0 }
+  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false }
 }
 
 /**
@@ -87,7 +90,7 @@ export function createGameWithFirstClickSafe(rows: number, cols: number, mines: 
     }
   }
   
-  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0 }
+  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false }
 }
 
 export function reveal(board: Board, r: number, c: number, isFirstClick: boolean = false): Board {
@@ -256,4 +259,38 @@ function shuffle<T>(arr: T[]) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[arr[i], arr[j]] = [arr[j], arr[i]]
   }
+}
+
+/**
+ * Activate cheat mode (can only be used once per game)
+ */
+export function activateCheatMode(board: Board): Board {
+  if (board.cheatUsed || board.state !== 'playing') return board
+  return { ...board, cheatMode: true }
+}
+
+/**
+ * Use cheat on a revealed number cell to see mines in surrounding 8 cells
+ */
+export function useCheat(board: Board, r: number, c: number): Board {
+  if (!board.cheatMode || board.cheatUsed || board.state !== 'playing') return board
+  
+  const idx = r * board.cols + c
+  const cell = board.cells[idx]
+  
+  // Can only cheat on revealed cells with a number (adjacent > 0)
+  if (!cell.revealed || cell.mine || cell.adjacent === 0) return board
+  
+  // Create new board state
+  const next: Board = { ...board, cells: board.cells.slice(), cheatMode: false, cheatUsed: true }
+  
+  // Reveal mines in the 8 surrounding cells
+  forEachNeighbor(next.cells, next.rows, next.cols, r, c, neighbor => {
+    if (neighbor.mine && !neighbor.revealed) {
+      const neighborIdx = neighbor.r * board.cols + neighbor.c
+      next.cells[neighborIdx] = { ...neighbor, cheatRevealed: true }
+    }
+  })
+  
+  return next
 }
