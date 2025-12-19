@@ -53,10 +53,10 @@
   </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import Board from './components/Board.vue'
 import Pvz from './components/Pvz.vue'
-import { createGame, reveal, toggleFlag, revealAdjacent, activateCheatMode, useCheat } from './game/minesweeper'
+import { createGame, reveal, toggleFlag, revealAdjacent, activateCheatMode, useCheat, toggleShowAllMines } from './game/minesweeper'
 
 const presets = {
   easy: { rows: 9, cols: 9, mines: 10 },
@@ -133,6 +133,38 @@ function onCheat(r: number, c: number) {
   if (board.value.state !== 'playing') return
   board.value = useCheat(board.value, r, c)
 }
+
+// Hidden feature: typing 'yangyang' toggles show all mines mode
+const keyBuffer = ref('')
+let keyTimeout: number | null = null
+
+function handleKeyPress(e: KeyboardEvent) {
+  // Only activate when minesweeper game is active
+  if (game.value !== 'minesweeper') return
+  
+  keyBuffer.value += e.key.toLowerCase()
+  
+  // Clear timeout and reset if typing too slow
+  if (keyTimeout) clearTimeout(keyTimeout)
+  keyTimeout = window.setTimeout(() => {
+    keyBuffer.value = ''
+  }, 1000)
+  
+  // Check if 'yangyang' is typed
+  if (keyBuffer.value.includes('yangyang')) {
+    board.value = toggleShowAllMines(board.value)
+    keyBuffer.value = ''
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keypress', handleKeyPress)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keypress', handleKeyPress)
+  if (keyTimeout) clearTimeout(keyTimeout)
+})
 
 watch(() => [rows.value, cols.value, mines.value], () => {
   if (difficultyKey.value !== 'custom') return

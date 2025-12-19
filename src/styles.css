@@ -80,6 +80,11 @@ body {
   color: #78350f;
   animation: cheatReveal 0.5s ease-out;
 }
+.cell.show-mine {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #dc2626;
+}
 @keyframes cheatReveal {
   0% { transform: scale(1.2); background: #fbbf24; }
   100% { transform: scale(1); background: #fef3c7; }

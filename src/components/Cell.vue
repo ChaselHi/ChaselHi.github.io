@@ -1,11 +1,12 @@
 <template>
   <div
     class="cell"
-    :class="{ revealed: cell.revealed, 'cheat-highlight': cell.cheatRevealed }"
+    :class="{ revealed: cell.revealed, 'cheat-highlight': cell.cheatRevealed, 'show-mine': showMine }"
     @click="onLeft"
     @contextmenu.prevent="onRight"
   >
-    <span v-if="cell.cheatRevealed">💣</span>
+    <span v-if="showMine">💣</span>
+    <span v-else-if="cell.cheatRevealed">💣</span>
     <span v-else-if="cell.flag">🚩</span>
     <span v-else-if="cell.revealed && cell.mine">💣</span>
     <span v-else-if="cell.revealed && cell.adjacent>0">{{ cell.adjacent }}</span>
@@ -14,7 +15,7 @@
 
 <script setup lang="ts">
 import type { Cell } from '../game/minesweeper'
-const props = defineProps<{ cell: Cell }>()
+const props = defineProps<{ cell: Cell; showMine?: boolean }>()
 const emit = defineEmits<{ 
   (e:'reveal'): void, 
   (e:'flag'): void,

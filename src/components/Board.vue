@@ -4,6 +4,7 @@
       v-for="cell in board.cells"
       :key="cell.id"
       :cell="cell"
+      :showMine="board.showAllMines && cell.mine && !cell.revealed"
       @reveal="$emit('reveal', cell.r, cell.c)"
       @flag="$emit('flag', cell.r, cell.c)"
       @revealAdjacent="board.cheatMode ? $emit('cheat', cell.r, cell.c) : $emit('revealAdjacent', cell.r, cell.c)"

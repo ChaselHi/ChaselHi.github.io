@@ -20,6 +20,7 @@ export interface Board {
   revealedCount: number
   cheatMode: boolean       // Whether cheat mode is active
   cheatUsed: boolean       // Whether cheat has been used
+  showAllMines: boolean    // Show all mines mode (hidden feature)
 }
 
 export function createGame(rows: number, cols: number, mines: number): Board {
@@ -38,7 +39,7 @@ export function createGame(rows: number, cols: number, mines: number): Board {
   for (const cell of cells) {
     cell.adjacent = countAdjacent(cells, rows, cols, cell.r, cell.c)
   }
-  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false }
+  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false, showAllMines: false }
 }
 
 /**
@@ -90,7 +91,7 @@ export function createGameWithFirstClickSafe(rows: number, cols: number, mines: 
     }
   }
   
-  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false }
+  return { rows, cols, mines, cells, state: 'playing', revealedCount: 0, cheatMode: false, cheatUsed: false, showAllMines: false }
 }
 
 export function reveal(board: Board, r: number, c: number, isFirstClick: boolean = false): Board {
@@ -293,4 +294,12 @@ export function useCheat(board: Board, r: number, c: number): Board {
   })
   
   return next
+}
+
+/**
+ * Toggle show all mines mode (hidden feature activated by typing 'yangyang')
+ */
+export function toggleShowAllMines(board: Board): Board {
+  if (board.state !== 'playing') return board
+  return { ...board, showAllMines: !board.showAllMines }
 }
