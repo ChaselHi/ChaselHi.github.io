@@ -49,7 +49,7 @@
         >
           <template v-if="cell.plant">
             <span class="plant-sprite">{{ getPlantIcon(cell.plant.type) }}</span>
-            <div v-if="cell.plant.type === 'wallnut' && cell.plant.hp" class="wallnut-hp">
+            <div v-if="cell.plant.hp !== undefined" class="wallnut-hp">
               {{ Math.ceil(cell.plant.hp) }}
             </div>
           </template>
@@ -89,7 +89,7 @@ import { createPvzGame, placePlant, tick, collectSunshine, removePlant, PLANT_CO
 const difficulty = ref<'easy'|'medium'|'hard'>('easy')
 const game = ref<PvzGame>(createPvzGame())
 const selectedPlant = ref<PlantType | null>('peashooter')
-const plantTypes: PlantType[] = ['sunflower', 'peashooter', 'wallnut']
+const plantTypes: PlantType[] = ['sunflower', 'peashooter', 'wallnut', 'squash','chilipepper']
 const plantConfigs = PLANT_CONFIGS
 let timer: number | null = null
 
@@ -129,7 +129,9 @@ function getPlantIcon(type: PlantType): string {
   const icons: Record<PlantType, string> = {
     peashooter: '🌿',
     sunflower: '🌻',
-    wallnut: '🥜'
+    wallnut: '🥔',
+    squash: '🫑',
+    chilipepper: '🌶️',
   }
   return icons[type]
 }

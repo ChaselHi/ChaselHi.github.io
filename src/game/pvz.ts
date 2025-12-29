@@ -1,5 +1,5 @@
 export type PvzState = 'playing' | 'won' | 'lost'
-export type PlantType = 'peashooter' | 'sunflower' | 'wallnut'
+export type PlantType = 'peashooter' | 'sunflower' | 'wallnut' | 'squash'|'chilipepper'
 
 export interface PlantConfig {
   type: PlantType
@@ -11,9 +11,12 @@ export interface PlantConfig {
 }
 
 export const PLANT_CONFIGS: Record<PlantType, PlantConfig> = {
-  peashooter: { type: 'peashooter', cost: 100, cooldown: 0, dmg: 1 },
-  sunflower: { type: 'sunflower', cost: 50, cooldown: 0, sunProduceInterval: 50 }, // 10 seconds
+  peashooter: { type: 'peashooter', cost: 100, cooldown: 0, dmg: 1, hp: 10 },
+  sunflower: { type: 'sunflower', cost: 50, cooldown: 0, sunProduceInterval: 50, hp: 10 }, // 10 seconds
   wallnut: { type: 'wallnut', cost: 50, cooldown: 0, hp: 40 },
+  squash: { type: 'squash', cost: 50, cooldown: 0, hp: 1 }, // One-time use
+  chilipepper: { type: 'chilipepper', cost: 120, cooldown: 0, hp: 1 }, // One-time use
+
 }
 
 export interface Plant {
@@ -87,6 +90,8 @@ export function createPvzGame(rows = 5, cols = 9): PvzGame {
       peashooter: 0,
       sunflower: 0,
       wallnut: 0,
+      squash: 0,
+      chilipepper: 0,
     },
   }
 }
@@ -115,7 +120,8 @@ export function placePlant(g: PvzGame, r: number, c: number, type: PlantType): P
     cooldown: 0,
   }
   
-  if (type === 'wallnut') {
+  // Initialize HP for all plants that have hp config
+  if (config.hp !== undefined) {
     newPlant.hp = config.hp
   }
   if (type === 'sunflower') {
@@ -216,6 +222,15 @@ export function tick(g: PvzGame): PvzGame {
           p.sunTimer = PLANT_CONFIGS['sunflower'].sunProduceInterval || 50
         }
       }
+    } else if (p.type === 'squash') {
+      // Squash: when zombie reaches its cell, kill all zombies in that cell and disappear
+      const zombiesInCell = next.zombies.filter(z => z.r === p.r && z.c === p.c)
+      if (zombiesInCell.length > 0) {
+        // Kill all zombies in the squash's cell
+        next.zombies = next.zombies.filter(z => !(z.r === p.r && z.c === p.c))
+        // Remove the squash after attack
+        next.plants = next.plants.filter(plant => plant.id !== p.id)
+      }
     }
     // Wall-nut doesn't have active behavior
   }
@@ -278,19 +293,10 @@ export function tick(g: PvzGame): PvzGame {
   // Zombies eat plants
   for (const z of next.zombies) {
     const targetPlant = next.plants.find(p => p.r === z.r && p.c === z.c)
-    if (targetPlant) {
-      if (targetPlant.type === 'wallnut' && targetPlant.hp !== undefined) {
-        targetPlant.hp -= 0.1
-        if (targetPlant.hp <= 0) {
-          next.plants = next.plants.filter(p => p.id !== targetPlant.id)
-        }
-      } else {
-        // Eat other plants slowly
-        if (!targetPlant.hp) targetPlant.hp = 5
-        targetPlant.hp -= 0.1
-        if (targetPlant.hp <= 0) {
-          next.plants = next.plants.filter(p => p.id !== targetPlant.id)
-        }
+    if (targetPlant && targetPlant.hp !== undefined) {
+      targetPlant.hp -= 0.1
+      if (targetPlant.hp <= 0) {
+        next.plants = next.plants.filter(p => p.id !== targetPlant.id)
       }
     }
   }
