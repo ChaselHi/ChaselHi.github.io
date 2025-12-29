@@ -193,7 +193,7 @@ export function tick(g: PvzGame): PvzGame {
   // Spawn zombies (every 10 seconds instead of 4 seconds)
   if (next.tickCount % 50 === 0 && next.waveSpawned < next.waveTotal) {
     const lane = Math.floor(Math.random() * next.rows)
-    next.zombies.push({ id: nextId++, r: lane, c: next.cols - 1, hp: 3, progress: 0 })
+    next.zombies.push({ id: nextId++, r: lane, c: next.cols - 1, hp: 6, progress: 0 })
     next.waveSpawned++
   }
 
@@ -235,7 +235,7 @@ export function tick(g: PvzGame): PvzGame {
     // Wall-nut doesn't have active behavior
   }
 
-  // Move projectiles
+  // 豌豆射手射出豌豆移动
   for (const b of next.projectiles) {
     b.x += b.speed
   }
@@ -254,7 +254,7 @@ export function tick(g: PvzGame): PvzGame {
     }
   }
 
-  // Update falling sunshine
+  // 更新掉落阳光的位置
   for (const s of next.sunshines) {
     if (s.falling && s.targetY !== undefined && s.speed) {
       if (s.y < s.targetY) {
@@ -269,7 +269,7 @@ export function tick(g: PvzGame): PvzGame {
     }
   }
 
-  // Remove old sunshine after 10 seconds (50 ticks)
+  // 移除过期阳光 10s(50 ticks)
   next.sunshines = next.sunshines.filter((s) => {
     if (s.falling) return true // Keep falling sunshine
     if (!s.createdAt) return true // Keep if no creation time (safety)
@@ -277,7 +277,7 @@ export function tick(g: PvzGame): PvzGame {
     return age < 50 // Remove after 10 seconds (50 ticks at 200ms per tick)
   })
 
-  // Projectile hit zombies
+  // 豌豆射手打僵尸
   for (const b of next.projectiles) {
     for (const z of next.zombies) {
       const zombieX = z.c + z.progress
@@ -290,7 +290,7 @@ export function tick(g: PvzGame): PvzGame {
   next.projectiles = next.projectiles.filter(b => b.x < next.cols)
   next.zombies = next.zombies.filter(z => z.hp > 0)
 
-  // Zombies eat plants
+  // 吃植物逻辑
   for (const z of next.zombies) {
     const targetPlant = next.plants.find(p => p.r === z.r && p.c === z.c)
     if (targetPlant && targetPlant.hp !== undefined) {
