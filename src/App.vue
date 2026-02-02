@@ -4,6 +4,7 @@
       <label>游戏</label>
       <select class="select" v-model="game">
         <option value="minesweeper">扫雷</option>
+        <option value="snake">贪吃蛇</option>
         <option value="pvz">植物大战僵尸</option>
       </select>
     </div>
@@ -46,6 +47,17 @@
       />
     </template>
 
+    <template v-else-if="game==='snake'">
+      <Suspense>
+        <template #default>
+          <Snake />
+        </template>
+        <template #fallback>
+          <div>Loading snake game...</div>
+        </template>
+      </Suspense>
+    </template>
+
     <template v-else>
       <Pvz />
     </template>
@@ -56,6 +68,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import Board from './components/Board.vue'
 import Pvz from './components/Pvz.vue'
+import Snake from './components/Snake.vue'
 import { createGame, reveal, toggleFlag, revealAdjacent, activateCheatMode, useCheat, toggleShowAllMines } from './game/minesweeper'
 
 const presets = {
@@ -64,7 +77,7 @@ const presets = {
   hard: { rows: 16, cols: 30, mines: 99 }
 }
 
-const game = ref<'minesweeper'|'pvz'>('minesweeper')
+const game = ref<'minesweeper'|'snake'|'pvz'>('minesweeper')
 const difficultyKey = ref<'easy'|'medium'|'hard'|'custom'>('easy')
 const rows = ref(presets.easy.rows)
 const cols = ref(presets.easy.cols)
@@ -85,7 +98,7 @@ function stopTimer() {
 }
 
 function reset() {
-  const p = difficultyKey.value === 'custom' ? { rows: rows.value, cols: cols.value, mines: mines.value } : presets[difficultyKey.value]
+  const p = difficultyKey.value === 'custom' ? { rows: rows.value, cols: cols.value, mines: mines.value } : presets[difficultyKey.value as keyof typeof presets]
   rows.value = p.rows
   cols.value = p.cols
   mines.value = p.mines
@@ -95,7 +108,7 @@ function reset() {
 }
 
 const remainingMines = computed(() => {
-  const flagged = board.value.cells.filter(c => c.flag).length
+  const flagged = board.value.cells.filter((c: any) => c.flag).length
   return board.value.mines - flagged
 })
 
