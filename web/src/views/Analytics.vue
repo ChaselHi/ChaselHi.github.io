@@ -11,6 +11,12 @@ const imageErrors = ref<Record<string | number, boolean>>({})
 const strategyLevel = ref(50)
 const strategyPanelCollapsed = ref(false)
 
+// 游戏配置数据
+const plantConfig = ref<any[]>([])
+const itemConfig = ref<any[]>([])
+const seedImageMap = ref<Map<number, string>>(new Map())
+const seedAssetImageMap = ref<Map<string, string>>(new Map())
+
 // 策略定义 - 与设置页面种植策略对应
 // 交替排列：保证手机端2列时 左边经验类、右边利润类
 // 顺序：经验/时、利润/时、普肥经验/时、普肥利润/时
@@ -52,6 +58,132 @@ const strategies = [
     desc: '使用普通化肥后利润最高',
   },
 ]
+
+// 解析生长时间
+function parseGrowTime(growPhases: string): number {
+  if (!growPhases) return 0
+  const phases = growPhases.split(';').filter(p => p.length > 0)
+  let totalTime = 0
+  for (const phase of phases) {
+    const match = phase.match(/:(\d+)$/)
+    if (match) {
+      totalTime += parseInt(match[1])
+    }
+  }
+  return totalTime
+}
+
+// 解析普通化肥减少时间
+function parseNormalFertilizerReduceSec(growPhases: string): number {
+  if (!growPhases) return 0
+  const phases = String(growPhases).split(';').filter(p => p.length > 0)
+  if (!phases.length) return 0
+  const first = phases[0]
+  const match = first.match(/:(\d+)$/)
+  return match ? (parseInt(match[1], 10) || 0) : 0
+}
+
+// 获取果实价格
+function getFruitPrice(fruitId: number): number {
+  const item = itemConfig.value.find((i: any) => i.id === fruitId)
+  return item?.price || 0
+}
+
+// 获取种子价格
+function getSeedPrice(seedId: number): number {
+  const item = itemConfig.value.find((i: any) => i.id === seedId)
+  return item?.price || 0
+}
+
+// 根据种子ID获取映射的图片
+function getMappedSeedImage(targetId: number): string {
+  const id = Number(targetId) || 0
+  if (id <= 0) return ''
+  return seedImageMap.value.get(id) || ''
+}
+
+// 获取物品图片
+function getItemImage(itemId: number): string {
+  const id = Number(itemId) || 0
+  if (id <= 0) return ''
+
+  // 1. 尝试直接获取
+  let img = getMappedSeedImage(id)
+  if (img) return img
+
+  // 2. 如果是果实，尝试获取对应的种子图片
+  const plant = plantConfig.value.find((p: any) => p.fruit?.id === id)
+  if (plant?.seed_id) {
+    img = getMappedSeedImage(plant.seed_id)
+    if (img) return img
+  }
+
+  return ''
+}
+
+// 计算作物分析数据
+function calculatePlantAnalytics() {
+  const plants = plantConfig.value
+  const results: any[] = []
+
+  for (const plant of plants) {
+    if (!plant.seed_id || !plant.grow_phases) continue
+
+    const baseGrowTime = parseGrowTime(plant.grow_phases)
+    if (baseGrowTime <= 0) continue
+
+    const seasons = Number(plant.seasons) || 1
+    const isTwoSeason = seasons === 2
+    const growTime = isTwoSeason ? (baseGrowTime * 1.5) : baseGrowTime
+
+    const harvestExpBase = parseInt(plant.exp) || 0
+    const harvestExp = isTwoSeason ? (harvestExpBase * 2) : harvestExpBase
+    const expPerHour = (harvestExp / growTime) * 3600
+
+    // 普通化肥计算
+    const reduceSecBase = parseNormalFertilizerReduceSec(plant.grow_phases)
+    const reduceSecApplied = isTwoSeason ? (reduceSecBase * 2) : reduceSecBase
+    const fertilizedGrowTime = growTime - reduceSecApplied
+    const safeFertilizedTime = fertilizedGrowTime > 0 ? fertilizedGrowTime : 1
+    const normalFertilizerExpPerHour = (harvestExp / safeFertilizedTime) * 3600
+
+    // 经济计算
+    const fruitId = Number(plant.fruit?.id) || 0
+    const fruitCount = Number(plant.fruit?.count) || 0
+    const fruitPrice = getFruitPrice(fruitId)
+    const seedPrice = getSeedPrice(Number(plant.seed_id) || 0)
+
+    const income = (fruitCount * fruitPrice) * (isTwoSeason ? 2 : 1)
+    const netProfit = income - seedPrice
+    const profitPerHour = (netProfit / growTime) * 3600
+    const normalFertilizerProfitPerHour = (netProfit / safeFertilizedTime) * 3600
+
+    const cfgLevel = Number(plant.land_level_need)
+    const requiredLevel = (Number.isFinite(cfgLevel) && cfgLevel > 0) ? cfgLevel : null
+
+    results.push({
+      id: plant.id,
+      seedId: plant.seed_id,
+      name: plant.name,
+      seasons,
+      level: requiredLevel,
+      growTime,
+      expPerHour: parseFloat(expPerHour.toFixed(2)),
+      normalFertilizerExpPerHour: parseFloat(normalFertilizerExpPerHour.toFixed(2)),
+      profitPerHour: parseFloat(profitPerHour.toFixed(2)),
+      normalFertilizerProfitPerHour: parseFloat(normalFertilizerProfitPerHour.toFixed(2)),
+      income,
+      netProfit,
+      fruitId,
+      fruitCount,
+      fruitPrice,
+      seedPrice,
+      image: getItemImage(plant.seed_id),
+    })
+  }
+
+  return results
+}
 
 // 根据等级过滤并获取最优作物
 function getStrategyBestPlant(strategyKey: string) {
@@ -148,35 +280,41 @@ const sortOptions = [
   { value: 'level', label: '作物等级' },
 ]
 
-// 模拟作物数据
-const mockPlants = [
-  { seedId: 1, name: '白萝卜', level: 0, growTime: 3600, seasons: 1, expPerHour: 120, profitPerHour: 50, normalFertilizerExpPerHour: 180, normalFertilizerProfitPerHour: 40, image: '' },
-  { seedId: 2, name: '胡萝卜', level: 2, growTime: 7200, seasons: 1, expPerHour: 150, profitPerHour: 80, normalFertilizerExpPerHour: 220, normalFertilizerProfitPerHour: 70, image: '' },
-  { seedId: 3, name: '玉米', level: 5, growTime: 10800, seasons: 1, expPerHour: 200, profitPerHour: 120, normalFertilizerExpPerHour: 280, normalFertilizerProfitPerHour: 100, image: '' },
-  { seedId: 4, name: '土豆', level: 8, growTime: 14400, seasons: 2, expPerHour: 180, profitPerHour: 150, normalFertilizerExpPerHour: 250, normalFertilizerProfitPerHour: 130, image: '' },
-  { seedId: 5, name: '番茄', level: 10, growTime: 18000, seasons: 2, expPerHour: 250, profitPerHour: 200, normalFertilizerExpPerHour: 350, normalFertilizerProfitPerHour: 180, image: '' },
-  { seedId: 6, name: '茄子', level: 12, growTime: 21600, seasons: 2, expPerHour: 280, profitPerHour: 220, normalFertilizerExpPerHour: 380, normalFertilizerProfitPerHour: 200, image: '' },
-  { seedId: 7, name: '辣椒', level: 15, growTime: 25200, seasons: 3, expPerHour: 320, profitPerHour: 280, normalFertilizerExpPerHour: 420, normalFertilizerProfitPerHour: 250, image: '' },
-  { seedId: 8, name: '南瓜', level: 18, growTime: 28800, seasons: 3, expPerHour: 350, profitPerHour: 300, normalFertilizerExpPerHour: 460, normalFertilizerProfitPerHour: 270, image: '' },
-  { seedId: 9, name: '西瓜', level: 20, growTime: 32400, seasons: 3, expPerHour: 400, profitPerHour: 350, normalFertilizerExpPerHour: 520, normalFertilizerProfitPerHour: 320, image: '' },
-  { seedId: 10, name: '草莓', level: 25, growTime: 36000, seasons: 4, expPerHour: 450, profitPerHour: 400, normalFertilizerExpPerHour: 580, normalFertilizerProfitPerHour: 360, image: '' },
-  { seedId: 11, name: '葡萄', level: 30, growTime: 39600, seasons: 4, expPerHour: 500, profitPerHour: 450, normalFertilizerExpPerHour: 640, normalFertilizerProfitPerHour: 400, image: '' },
-  { seedId: 12, name: '桃子', level: 35, growTime: 43200, seasons: 4, expPerHour: 550, profitPerHour: 500, normalFertilizerExpPerHour: 700, normalFertilizerProfitPerHour: 450, image: '' },
-  { seedId: 13, name: '橙子', level: 40, growTime: 46800, seasons: 5, expPerHour: 600, profitPerHour: 550, normalFertilizerExpPerHour: 760, normalFertilizerProfitPerHour: 500, image: '' },
-  { seedId: 14, name: '苹果', level: 45, growTime: 50400, seasons: 5, expPerHour: 650, profitPerHour: 600, normalFertilizerExpPerHour: 820, normalFertilizerProfitPerHour: 550, image: '' },
-  { seedId: 15, name: '樱桃', level: 50, growTime: 54000, seasons: 5, expPerHour: 700, profitPerHour: 650, normalFertilizerExpPerHour: 880, normalFertilizerProfitPerHour: 600, image: '' },
-  { seedId: 16, name: '荔枝', level: 55, growTime: 57600, seasons: 6, expPerHour: 750, profitPerHour: 700, normalFertilizerExpPerHour: 940, normalFertilizerProfitPerHour: 650, image: '' },
-  { seedId: 17, name: '龙眼', level: 60, growTime: 61200, seasons: 6, expPerHour: 800, profitPerHour: 750, normalFertilizerExpPerHour: 1000, normalFertilizerProfitPerHour: 700, image: '' },
-  { seedId: 18, name: '芒果', level: 65, growTime: 64800, seasons: 6, expPerHour: 850, profitPerHour: 800, normalFertilizerExpPerHour: 1060, normalFertilizerProfitPerHour: 750, image: '' },
-  { seedId: 19, name: '榴莲', level: 70, growTime: 68400, seasons: 7, expPerHour: 900, profitPerHour: 850, normalFertilizerExpPerHour: 1120, normalFertilizerProfitPerHour: 800, image: '' },
-  { seedId: 20, name: '人参果', level: 80, growTime: 72000, seasons: 7, expPerHour: 1000, profitPerHour: 950, normalFertilizerExpPerHour: 1240, normalFertilizerProfitPerHour: 900, image: '' },
-]
+// 加载种子图片映射
+async function loadSeedImageMappings() {
+  try {
+    const response = await fetch('/seed_image_map.json')
+    const map = await response.json()
 
-function loadAnalytics() {
+    seedImageMap.value.clear()
+    for (const [key, value] of Object.entries(map)) {
+      const seedId = Number(key)
+      if (seedId > 0 && typeof value === 'string') {
+        seedImageMap.value.set(seedId, value)
+      }
+    }
+  } catch (e) {
+    console.warn('加载种子图片映射失败:', e)
+  }
+}
+
+async function loadAnalytics() {
   loading.value = true
-  // 模拟加载延迟
-  setTimeout(() => {
-    list.value = [...mockPlants]
+  try {
+    // 加载游戏配置和图片映射
+    await loadSeedImageMappings()
+
+    const [plantRes, itemRes] = await Promise.all([
+      fetch('/Plant.json'),
+      fetch('/ItemInfo.json'),
+    ])
+
+    plantConfig.value = await plantRes.json()
+    itemConfig.value = await itemRes.json()
+
+    // 计算分析数据
+    const results = calculatePlantAnalytics()
+
     // 根据排序键排序
     const metricMap: Record<string, string> = {
       exp: 'expPerHour',
@@ -187,7 +325,7 @@ function loadAnalytics() {
     }
     const metric = metricMap[sortKey.value]
     if (metric) {
-      list.value.sort((a: any, b: any) => {
+      results.sort((a: any, b: any) => {
         const av = Number(a[metric])
         const bv = Number(b[metric])
         if (!Number.isFinite(av) && !Number.isFinite(bv))
@@ -199,8 +337,14 @@ function loadAnalytics() {
         return bv - av
       })
     }
+
+    list.value = results
+  } catch (e) {
+    console.error('加载分析数据失败:', e)
+    list.value = []
+  } finally {
     loading.value = false
-  }, 300)
+  }
 }
 
 onMounted(() => {

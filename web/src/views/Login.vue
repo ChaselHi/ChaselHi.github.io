@@ -39,7 +39,7 @@ async function handleLogin() {
     <div class="max-w-md w-full rounded-xl bg-white p-8 shadow-lg space-y-6 dark:bg-gray-800">
       <div class="mb-8 py-4 text-center">
         <h1 class="text-3xl text-gray-900 font-bold tracking-tight dark:text-white">
-          QQ农场智能助手
+          等级查询
         </h1>
         <p class="mt-3 text-sm text-gray-500 tracking-widest uppercase dark:text-gray-400">
           管理面板

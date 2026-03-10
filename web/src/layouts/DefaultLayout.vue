@@ -37,7 +37,7 @@ watch(
       <header class="h-16 flex shrink-0 items-center justify-between border-b border-gray-100 bg-white px-6 lg:hidden dark:border-gray-700/50 dark:bg-gray-800">
         <div class="flex items-center gap-2 text-lg font-bold">
           <div class="i-carbon-sprout text-green-500" />
-          <span>QQ农场智能助手</span>
+          <span>等级查询</span>
         </div>
         <button
           class="flex items-center justify-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"

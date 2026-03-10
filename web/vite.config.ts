@@ -10,7 +10,7 @@ const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/ChaselHi.github.io/',
+  base: '/',
   plugins: [
     vue(),
     UnoCSS() as any,

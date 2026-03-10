@@ -224,7 +224,7 @@ watch(
       <div class="flex items-center gap-3">
         <div class="i-carbon-sprout text-2xl text-green-500" />
         <span class="from-green-600 to-emerald-500 bg-gradient-to-r bg-clip-text text-lg text-transparent font-bold">
-          QQ农场智能助手
+          等级查询
         </span>
       </div>
       <!-- Mobile Close Button -->
