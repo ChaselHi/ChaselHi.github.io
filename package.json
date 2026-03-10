@@ -1,22 +1,24 @@
 {
-  "name": "minesweeper-vue3",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
+  "name": "qq-farm-bot-ui",
+  "packageManager": "pnpm@10.30.2",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev:core": "pnpm -C core dev",
+    "dev:web": "pnpm -C web dev",
+    "dev": "pnpm build:web && pnpm dev:core",
+    "lint": "pnpm lint:core && pnpm lint:web",
+    "lint:core": "pnpm -C core lint",
+    "lint:web": "pnpm -C web lint",
+    "build:web": "pnpm -C web build",
+    "build": "pnpm build:web",
+    "package:win": "pnpm build:web && pnpm -C core build:win",
+    "package:linux": "pnpm build:web && pnpm -C core build:linux",
+    "package:mac": "pnpm build:web && pnpm -C core build:mac",
+    "package:release": "pnpm build:web && pnpm -C core build:release",
+    "install:all": "pnpm install -r"
   },
-  "dependencies": {
-    "vue": "^3.5.11"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.4",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.8",
-    "vitest": "^2.1.4"
+  "pnpm": {
+    "overrides": {
+      "@babel/traverse": "7.26.10"
+    }
   }
 }
