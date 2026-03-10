@@ -15,7 +15,6 @@ const strategyPanelCollapsed = ref(false)
 const plantConfig = ref<any[]>([])
 const itemConfig = ref<any[]>([])
 const seedImageMap = ref<Map<number, string>>(new Map())
-const seedAssetImageMap = ref<Map<string, string>>(new Map())
 
 // 策略定义 - 与设置页面种植策略对应
 // 交替排列：保证手机端2列时 左边经验类、右边利润类
@@ -66,8 +65,8 @@ function parseGrowTime(growPhases: string): number {
   let totalTime = 0
   for (const phase of phases) {
     const match = phase.match(/:(\d+)$/)
-    if (match) {
-      totalTime += parseInt(match[1])
+    if (match && match[1]) {
+      totalTime += parseInt(match[1], 10)
     }
   }
   return totalTime
@@ -79,8 +78,9 @@ function parseNormalFertilizerReduceSec(growPhases: string): number {
   const phases = String(growPhases).split(';').filter(p => p.length > 0)
   if (!phases.length) return 0
   const first = phases[0]
+  if (!first) return 0
   const match = first.match(/:(\d+)$/)
-  return match ? (parseInt(match[1], 10) || 0) : 0
+  return match && match[1] ? (parseInt(match[1], 10) || 0) : 0
 }
 
 // 获取果实价格
