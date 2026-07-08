@@ -1,230 +1,79 @@
-# QQ 农场多账号挂机 + Web 面板
+# 悟空与唐僧 · 文字合成塔防
 
-基于 Node.js 的 QQ 农场自动化工具，支持多账号管理、Web 控制面板、实时日志与数据分析。
+以西游记「西天取经」为背景的文字合成策略塔防小游戏：**上下分屏对称对战 + 沿路寻径塔防 + 麻将牌字块 + 武将碎片拼字**。纯 Canvas 手写引擎，零第三方依赖，一套代码同时支持 **微信小游戏**、**抖音小游戏** 和 **网页浏览器**。
 
-新 qq农场游戏交流群：1077372084
+## 玩法
 
-[Discord](https://discord.gg/suya45TU)
+- 战场为 8×10 格地图，上半场是**对手 AI**，下半场是你，中间山脊分隔
+- 每波敌军（贼/匪/盗/寇，每 5 波 BOSS「牛」魔王）同时进攻双方，沿各自的 S 形土路冲向守将
+- 守将只有 **3 颗红心**，漏过一个敌人掉一颗，先掉光的一方落败
+- 点「征兵」（花馒头）抽字牌进**备战席**，拖到路边**白色空地**布阵
+- 四大基础兵种平行成长：**刀**（近战快攻）/ **枪**（中距）/ **弓**（远程速射）/ **骑**（重击），同字同级二合一升级（最高 5 级）
+- 征兵可能抽到**金色武将单字碎片**（悟/空/八/戒/沙/僧/唐/三/白/龙）——碎片不能作战、纯占格子，拼齐姓名才觉醒：**悟空**（贯穿）、**八戒**（范围眩晕）、**沙僧**（斩杀）、**唐三**（超远速射）、**白龙**（全军增伤）
+- 5 种地图随机切换：火焰山 / 流沙河 / 盘丝洞 / 水帘洞 / 女儿国
+- 撑过 10 波或先耗光对手红心即胜利
 
-## 技术栈
-
-**后端**
-
-[<img src="https://skillicons.dev/icons?i=nodejs" height="48" title="Node.js 20+" />](https://nodejs.org/)
-[<img src="https://skillicons.dev/icons?i=express" height="48" title="Express 4" />](https://expressjs.com/)
-[<img src="https://skillicons.dev/icons?i=socketio" height="48" title="Socket.io 4" />](https://socket.io/)
-
-**前端**
-
-[<img src="https://skillicons.dev/icons?i=vue" height="48" title="Vue 3" />](https://vuejs.org/)
-[<img src="https://skillicons.dev/icons?i=vite" height="48" title="Vite 7" />](https://vitejs.dev/)
-[<img src="https://skillicons.dev/icons?i=ts" height="48" title="TypeScript 5" />](https://www.typescriptlang.org/)
-[<img src="https://cdn.simpleicons.org/pinia/FFD859" height="48" title="Pinia 3" />](https://pinia.vuejs.org/)
-[<img src="https://skillicons.dev/icons?i=unocss" height="48" title="UnoCSS" />](https://unocss.dev/)
-
-**部署**
-
-[<img src="https://skillicons.dev/icons?i=docker" height="48" title="Docker Compose" />](https://docs.docker.com/compose/)
-[<img src="https://skillicons.dev/icons?i=pnpm" height="48" title="pnpm 10" />](https://pnpm.io/)
-[<img src="https://skillicons.dev/icons?i=githubactions" height="48" title="GitHub Actions" />](https://github.com/features/actions)
-
----
-
-## 功能特性
-
-### 多账号管理
-- 账号新增、编辑、删除、启动、停止
-- 手动输入 Code
-- 账号被踢下线自动删除
-- 账号连续离线超时自动删除
-- 账号离线推送通知（支持 Bark、自定义 Webhook 等）
-
-### 自动化能力
-- 农场：收获、种植、浇水、除草、除虫、铲除、土地升级
-- 仓库：收获后自动出售果实
-- 好友：自动偷菜 / 帮忙 / 捣乱
-- 任务：自动检查并领取
-- 好友黑名单：跳过指定好友
-- 静默时段：指定时间段内不执行好友操作
-
-### Web 面板
-- 概览 / 农场 / 背包 / 好友 / 分析 / 账号 / 设置页面
-- 实时日志，支持按账号、模块、事件、级别、关键词、时间范围筛选
-- 深色 / 浅色主题切换
-
-### 分析页
-支持按以下维度排序作物：
-- 经验效率 / 普通肥经验效率
-- 净利润效率 / 普通肥净利润效率
-- 等级要求
-
----
-
-## 环境要求
-
-- 源码运行：Node.js 20+，pnpm（推荐通过 `corepack enable` 启用）
-- 二进制发布版：无需安装 Node.js
-
-## 安装与启动（源码方式）
-
-### Windows
-
-```powershell
-# 1. 安装 Node.js 20+（https://nodejs.org/）并启用 pnpm
-node -v
-corepack enable
-pnpm -v
-
-# 2. 安装依赖并构建前端
-cd D:\Projects\qq-farm-bot-ui
-pnpm install
-pnpm build:web
-
-# 3. 启动
-pnpm dev:core
-
-# （可选）设置管理密码后启动
-$env:ADMIN_PASSWORD="你的强密码"
-pnpm dev:core
-```
-
-### Linux（Ubuntu/Debian）
+## 本地运行
 
 ```bash
-# 1. 安装 Node.js 20+
-sudo apt update && sudo apt install -y curl
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-corepack enable
-
-# 2. 安装依赖并构建前端
-cd /path/to/qq-farm-bot-ui
-pnpm install
-pnpm build:web
-
-# 3. 启动
-pnpm dev:core
-
-# （可选）设置管理密码后启动
-ADMIN_PASSWORD='你的强密码' pnpm dev:core
+# 方式一：直接双击打开 index.html（file:// 协议可玩）
+# 方式二：起个静态服务器
+python3 -m http.server 8765
+# 浏览器打开 http://localhost:8765/index.html
+# 挂机调试模式（AI 代打）：index.html?bot=1
 ```
 
-启动后访问面板：
-- 本机：`http://localhost:3000`
-- 局域网：`http://<你的IP>:3000`
+## 目录结构
 
----
+```
+game.js                    小游戏入口（require 各模块）
+game.json                  小游戏配置（竖屏）
+project.config.json        微信开发者工具项目配置
+project.douyin.config.json 抖音开发者工具项目配置（使用时重命名覆盖）
+index.html                 浏览器调试入口
+js/
+  adapter.js               平台适配层（wx / tt / 浏览器统一接口）
+  config.js                数值配置（兵种、武将、敌人、经济、波次）
+  map.js                   地图（8×10 格、5 种布局随机、可建造格、上下镜像）
+  render.js                渲染（宣纸、地砖、土路、麻将牌、红心金冠）
+  audio.js                 音效播放（InnerAudioContext / HTMLAudio）
+  board.js                 备战席、征兵、拖拽布阵、合成、碎片拼武将
+  enemies.js               敌军沿路寻径、双方同波、漏怪扣心
+  battle.js                自动索敌、弹道、武将技、特效
+  ai.js                    对手 AI（也驱动 ?bot=1 挂机调试）
+  rank.js                  玩家段位（11 级 × 5 阶 × 5 星）
+  ui.js                    开始界面、HUD、暂停、胜负结算
+  main.js                  布局、地图绘制、主循环、场景状态机
+audio/                     程序生成的 WAV 音效
+sim/                       无头模拟器（数据驱动平衡调优）
+tools/
+  gen_audio.py             重新生成音效：python3 tools/gen_audio.py
+```
 
-## Docker 部署
+## 发布到微信小游戏
+
+1. 在 [微信公众平台](https://mp.weixin.qq.com/) 注册 **小游戏** 账号，拿到 AppID
+2. 下载 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)，选择「导入项目」，目录选本项目根目录
+3. 把 `project.config.json` 里的 `appid` 从 `touristappid` 改成你的 AppID
+4. 工具内预览/真机调试确认无误后，点「上传」
+5. 在 mp.weixin.qq.com 后台提交版本审核（需要完成软著/备案等资质要求），审核通过后发布
+
+## 发布到抖音小游戏
+
+1. 在 [抖音开放平台](https://developer.open-douyin.com/) 注册小游戏，拿到 `tt` 开头的 AppID
+2. 下载「抖音开发者工具」，导入本项目根目录
+3. 把 `project.douyin.config.json` 重命名为 `project.config.json`（先备份微信版），填入你的 AppID
+4. 预览确认后上传、提交审核
+
+> 两个平台的 API（`wx.*` / `tt.*`）已由 `js/adapter.js` 和 `js/audio.js` 自动识别适配，业务代码无需改动。
+
+## 数值调优
+
+改 `js/config.js` 即可调整兵种/敌人/经济数值。改完跑无头模拟验证平衡：
 
 ```bash
-# 构建并后台启动
-docker compose up -d --build
-
-# 查看日志
-docker compose logs -f
-
-# 停止并移除容器
-docker compose down
+node sim/run.js <rank> <subLevel> <stars> <N>   # 指定段位跑 N 局
+node sim/sweep.js                                 # 11 段位批量扫描
 ```
 
-### 数据持久化
-
-`docker-compose.yml` 已将数据目录挂载：
-
-| 宿主机路径 | 容器内路径 |
-|-----------|-----------|
-| `./data`  | `/app/core/data` |
-
-账号与配置数据保存在 `./data/accounts.json` 和 `./data/store.json`。
-
-### 设置管理密码
-
-在 `docker-compose.yml` 的 `environment` 中配置：
-
-```yaml
-environment:
-  ADMIN_PASSWORD: 你的强密码
-```
-
-修改后执行 `docker compose up -d` 重启生效。
-
----
-
-## 二进制发布版（无需 Node.js）
-
-### 构建
-
-```bash
-pnpm install
-pnpm package:release
-```
-
-产物输出在 `dist/` 目录：
-
-| 平台 | 文件名 |
-|------|--------|
-| Windows x64 | `qq-farm-bot-win-x64.exe` |
-| Linux x64 | `qq-farm-bot-linux-x64` |
-| macOS Intel | `qq-farm-bot-macos-x64` |
-| macOS Apple Silicon | `qq-farm-bot-macos-arm64` |
-
-### 运行
-
-```bash
-# Windows：双击 exe 或在终端执行
-.\qq-farm-bot-win-x64.exe
-
-# Linux / macOS
-chmod +x ./qq-farm-bot-linux-x64 && ./qq-farm-bot-linux-x64
-```
-
-程序会在可执行文件同级目录自动创建 `data/` 并写入 `store.json`、`accounts.json`。
-
----
-
-## 登录与安全
-
-- 面板首次访问需要登录
-- 默认管理密码：`admin`
-- **建议部署后立即修改为强密码**
-
----
-
-## 项目结构
-
-```
-qq-farm-bot-ui/
-├── core/                  # 后端（Node.js 机器人引擎）
-│   ├── src/
-│   │   ├── config/        # 配置管理
-│   │   ├── controllers/   # HTTP API
-│   │   ├── gameConfig/    # 游戏静态数据
-│   │   ├── models/        # 数据模型与持久化
-│   │   ├── proto/         # Protobuf 协议定义
-│   │   ├── runtime/       # 运行时引擎与 Worker 管理
-│   │   └── services/      # 业务逻辑（农场、好友、任务等）
-│   ├── data/              # 运行时数据（accounts.json、store.json）
-│   └── client.js          # 主进程入口
-├── web/                   # 前端（Vue 3 + Vite）
-│   ├── src/
-│   │   ├── api/           # API 客户端
-│   │   ├── components/    # Vue 组件
-│   │   ├── stores/        # Pinia 状态管理
-│   │   └── views/         # 页面视图
-│   └── dist/              # 构建产物
-├── docker-compose.yml
-├── pnpm-workspace.yaml
-└── package.json
-```
-
----
-
-## 特别感谢
-
-- 核心功能：[linguo2625469/qq-farm-bot](https://github.com/linguo2625469/qq-farm-bot)
-- 部分功能：[QianChenJun/qq-farm-bot](https://github.com/QianChenJun/qq-farm-bot)
-
-## 免责声明
-
-本项目仅供学习与研究用途。使用本工具可能违反游戏服务条款，由此产生的一切后果由使用者自行承担。
+AI 难度曲线随玩家段位提升（思考更快/失误更少/抽卡运气更好），已通过 11000 局模拟调至每段位胜率 40%~60%。
